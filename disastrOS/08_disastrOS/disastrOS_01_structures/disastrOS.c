@@ -75,6 +75,7 @@ int disastrOS_syscall(int syscall_num, ...) {
   }
   va_end(ap);
   running->syscall_num=syscall_num;
+  // disastrOS_trap: simulates entering in kernel mode, fetches parameters from PCB, invokes call
   disastrOS_trap();
   return running->syscall_retvalue;
 }
