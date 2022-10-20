@@ -61,6 +61,7 @@ TimerItem* TimerList_add(ListHead* timers, int awakening_time, PCB* pcb){
 }
 
 TimerItem* TimerList_current(ListHead* timers, int current_time){
+  // returns the first timerItem in the list if its awakening_time is equal to current_time
   if (! timers->first)
     return 0;
   TimerItem* item = (TimerItem*) timers->first;

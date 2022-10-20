@@ -25,6 +25,7 @@ void internal_sleep(){
   List_insert(&waiting_list, waiting_list.last, (ListItem*) running);
   if (ready_list.first)
     running=(PCB*) List_detach(&ready_list, ready_list.first);
+    // sets a new running process if the ready list is not empty
   else {
     running=0;
     printf ("they are all sleeping\n");
