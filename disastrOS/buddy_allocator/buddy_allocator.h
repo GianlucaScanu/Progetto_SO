@@ -17,7 +17,7 @@ typedef struct BuddyListItem {
 
 
 typedef struct  {
-  ListHead free[MAX_LEVELS];
+  ListHead free[MAX_LEVELS];  //  free list for each level of the buddy system
   int num_levels;
   PoolAllocator list_allocator;
   char* memory; // the memory area to be managed
