@@ -37,6 +37,3 @@ int parent(int i){
   return floor((i-1) / 2);
 }
 
-int has_parent(int i){
-    return (floor((i-1) / 2)) > 0;
-}

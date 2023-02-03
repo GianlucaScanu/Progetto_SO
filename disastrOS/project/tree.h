@@ -14,5 +14,3 @@ int right(int i);
 int left(int i);
 
 int parent(int i);
-
-int has_parent(int i);

@@ -39,10 +39,13 @@ int required_level(buddy_allocator* alloc, int size){
 
 //Sets as taken (1) all the buddies (blocks) that are the ancestors of the free block requested represented by a bitmap bit
 int set_ancestors(buddy_allocator* alloc, int bit){
-    while (has_parent(bit)){
+    while (bit > 0){
         bit = parent(bit);
-        if (bitmap_bit(alloc->bit_map, bit)) return -1;
+        if (bitmap_bit(alloc->bit_map, bit))
+            return -1;
         bitmap_set_bit(alloc->bit_map, bit, 1);
+        if (bit == 0)
+            break;
     }
     return 0;
 }
