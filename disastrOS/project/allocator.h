@@ -14,3 +14,7 @@ typedef struct{
 
 int buddy_init(char* buffer, int buffer_size, int levels, buddy_allocator* alloc,
          int min_chunk_size, char* memory, int memory_size);
+
+void * buddy_malloc(buddy_allocator* alloc, int size);
+
+void buddy_free(buddy_allocator* alloc, void* mem);

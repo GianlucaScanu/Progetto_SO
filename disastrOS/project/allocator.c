@@ -41,19 +41,26 @@ int required_level(buddy_allocator* alloc, int size){
 int set_ancestors(buddy_allocator* alloc, int bit){
     while (bit > 0){
         bit = parent(bit);
-        if (bitmap_bit(alloc->bit_map, bit))
-            return -1;
         bitmap_set_bit(alloc->bit_map, bit, 1);
-        if (bit == 0)
-            break;
     }
     return 0;
 }
 
-//TODO: SE NON MODIFICA PASSA BLOCK COME INDIRIZZO NON VALORE
-char * buddy_malloc(buddy_allocator* alloc, int size){
+//Sets as taken (1) all the buddies (blocks) that are the descendants of the free block requested represented by a bitmap bit
+int set_descendants(buddy_allocator* alloc, int bit){
+    bitmap_set_bit(alloc->bit_map, bit, 1);
+    if (left(bit) <= alloc->bit_map->num_bits){
+        set_descendants(alloc, left(bit));
+    }
+    if (right(bit) <= alloc->bit_map->num_bits){
+        set_descendants(alloc, right(bit));
+    }
+    return 0;
+}
 
-    char * block;
+void * buddy_malloc(buddy_allocator* alloc, int size){
+
+    void * block;
 
     //Checks that size greater than 0;
     //TODO: appartiene ai controlli
@@ -64,6 +71,7 @@ char * buddy_malloc(buddy_allocator* alloc, int size){
     //Gets index of the first node of level
     int first_node = first_of_level(level);
 
+    //Finds and stores in free_node the first free buddy (block) able to contain size
     int free_node = -1;
     for (int i = 0; i < nodes_in_level(level); i++){
         if (!bitmap_bit(alloc->bit_map, i + first_node)){
@@ -79,25 +87,16 @@ char * buddy_malloc(buddy_allocator* alloc, int size){
         //Gets the chunk size of the required level
         int level_chunk_size = alloc->chunk_size << (alloc->levels - level - 1);
 
-        //Sets as taken the buddy requested and his ancestors
-        bitmap_set_bit(alloc->bit_map, free_node, 1);
+        //Sets as taken the buddy requested, his ancestors and his descendants
         //TODO: GESTISCI MEGLIO LA VARIABILE DEBUG -> SE 0 OK SE -1 ERRORE
-        int debug =  set_ancestors(alloc, free_node);
-        if (debug == -1){
-             printf("ERRORE NELLA GESTIONE DELLA BITMAP\n");
-             return block;
-        }
+        int debug_anc =  set_ancestors(alloc, free_node);
+        int debug_des = set_descendants(alloc, free_node);
+        
 
         //Gets the address in memory corresponding to the free block
-        block = alloc->actual_memory + ((free_node - first_node)*level_chunk_size);
+        block = (void*)alloc->actual_memory + ((free_node - first_node)*level_chunk_size);
     }
     
-
-
-    for (int i = 0; i < total_nodes(alloc->levels); i++){
-        printf("%d ", bitmap_bit(alloc->bit_map, i));
-    }
-
     return block;
 }
 
@@ -126,14 +125,19 @@ int buddy_init(char* buffer, int buffer_size, int levels, buddy_allocator* alloc
     //the bits are stored in the same buffer right after the bitmap structure
     bitmap_init(bit_map, total_nodes(levels), ((uint8_t*)buffer) + bitmap_structure_size(levels));
     alloc->bit_map = bit_map;
-    
-
-    
-
 
 
     //TODO: se sono presenti errori restituire -1,-2, etc
     return 0;
+}
+
+
+void buddy_free(buddy_allocator* alloc, void* mem){
+    //distance in bytes between memory start and mem
+    int distance = (char*)mem - alloc->actual_memory;
+    printf("len è : %d\n", distance);
+    //
+    int memory_offset = distance / alloc->chunk_size;
 }
 
 int main(){
@@ -143,8 +147,10 @@ int main(){
     buddy_allocator alloc;
     int err = buddy_init(buffer, 1000000, 10, &alloc, 2048, memory, 1024*1024);
     //Using int to pass the size we must respect the maximum value
-    char* block = buddy_malloc(&alloc, 50*(&alloc)->chunk_size);
+    char* block = (char*)buddy_malloc(&alloc, 50*(&alloc)->chunk_size);
+    char* block1 = (char*)buddy_malloc(&alloc, 50*(&alloc)->chunk_size);
     strcpy(block, "some string");
     printf("%s\n", &block[0]);
+    buddy_free(&alloc,(void*)block1);
     return 0;
 }
