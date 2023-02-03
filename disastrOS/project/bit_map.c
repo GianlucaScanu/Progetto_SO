@@ -4,42 +4,21 @@
 #include <math.h>
 
 
-//returns the buddy
-int buddy(int i){
-  return (i&0x01) ? i + 1 : i - 1;
-}
-
-//return the right child of i
-int right(int i){
-  return 2 * i + 2;
-}
-
-//return the left child of i
-int left(int i){
-  return 2 * i + 1;
-}
-
-//returns the parent of i
-int parent(int i){
-  assert(i != 0);
-  return floor((i-1) / 2);
-}
-
-//returns the number of bytes to store bits booleans
-int bitmap_getBytes(int bits){
-  return bits/8 + (bits%8)!=0;
+//returns the number of bytes needed to store the bits
+int bitmap_get_bytes(int bits){
+  return (bits >> 3) + ((bits%8)!=0);
 }
 
 // initializes a bitmap on an external array
 void bitmap_init(bitmap* bit_map, int num_bits, uint8_t* buffer){
   bit_map->buffer=buffer;
   bit_map->num_bits=num_bits;
-  bit_map->buffer_size=bitmap_getBytes(num_bits);
+  bit_map->buffer_size=bitmap_get_bytes(num_bits);
 }
 
 // sets a the bit bit_num in the bitmap
 // status= 0 or 1
-void bitmap_setBit(bitmap* bit_map, int bit_num, int status){
+void bitmap_set_bit(bitmap* bit_map, int bit_num, int status){
   // getting the byte number "dividing" by 8
   int byte_num=bit_num>>3;
   assert(byte_num<bit_map->buffer_size);
