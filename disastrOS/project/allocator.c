@@ -68,7 +68,7 @@ void * buddy_malloc(buddy_allocator* alloc, int size){
     //We want to know which level we want to ask a buddy (block)
     int level = required_level(alloc,size);
 
-    //Gets index of the first node of level
+    //Gets the index of the first node of level
     int first_node = first_of_level(level);
 
     //Finds and stores in free_node the first free buddy (block) able to contain size
@@ -136,8 +136,17 @@ void buddy_free(buddy_allocator* alloc, void* mem){
     //distance in bytes between memory start and mem
     int distance = (char*)mem - alloc->actual_memory;
     printf("len è : %d\n", distance);
-    //
-    int memory_offset = distance / alloc->chunk_size;
+
+    //Gets the node offset of "mem" from "start" expressed like the number of lowest level's chunks separing the two
+    int node_offset = distance / alloc->chunk_size;
+
+    //Gets the index of the first node of the last level
+    int first_node = first_of_level(alloc->levels-1);
+
+    //Gets the last level node's index that represents the start of mem
+    int mem_node = first_node + node_offset;
+
+    //TODO: ISPEZIONA E MERGIA (METTI A 0) E BUDDIES E RICOSIONE NEI GENITORI
 }
 
 int main(){
