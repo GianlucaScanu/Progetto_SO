@@ -26,20 +26,20 @@ int parent(int i){
 }
 
 //returns the number of bytes to store bits booleans
-int BitMap_getBytes(int bits){
+int bitmap_getBytes(int bits){
   return bits/8 + (bits%8)!=0;
 }
 
 // initializes a bitmap on an external array
-void BitMap_init(BitMap* bit_map, int num_bits, uint8_t* buffer){
+void bitmap_init(bitmap* bit_map, int num_bits, uint8_t* buffer){
   bit_map->buffer=buffer;
   bit_map->num_bits=num_bits;
-  bit_map->buffer_size=BitMap_getBytes(num_bits);
+  bit_map->buffer_size=bitmap_getBytes(num_bits);
 }
 
 // sets a the bit bit_num in the bitmap
 // status= 0 or 1
-void BitMap_setBit(BitMap* bit_map, int bit_num, int status){
+void bitmap_setBit(bitmap* bit_map, int bit_num, int status){
   // getting the byte number "dividing" by 8
   int byte_num=bit_num>>3;
   assert(byte_num<bit_map->buffer_size);
@@ -59,7 +59,7 @@ void BitMap_setBit(BitMap* bit_map, int bit_num, int status){
 }
 
 // inspects the status of the bit bit_num
-int BitMap_bit(const BitMap* bit_map, int bit_num){
+int bitmap_bit(const bitmap* bit_map, int bit_num){
   // getting the byte number "dividing" b
   int byte_num=bit_num>>3; 
   assert(byte_num<bit_map->buffer_size);
@@ -76,19 +76,3 @@ int BitMap_bit(const BitMap* bit_map, int bit_num){
 }
  
  
-int main(){
-  BitMap struttura;
-  uint8_t array[] = { (uint8_t)3 };
-  BitMap_init(&struttura, 8, array);
-
-  BitMap_setBit(&struttura, 7, 1);
-
-  for (int i = 0; i < 8; i++){
-    printf("numero: %d", array[0]);
-    printf("bit %d: %d\n ", i, BitMap_bit(&struttura, i));
-  }
-
-  printf("buddy di 7: %d\n", buddy(7));
-  
-  return 0;
-}

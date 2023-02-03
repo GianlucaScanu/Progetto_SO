@@ -1,0 +1,4 @@
+Il numero di livelli LEVELS desiderato per la costruzione dell'allocatore è mandato in input. Se questo rispetta
+il vincolo di numero massimo di livelli allora verranno creati LEVELS livelli: considerando il primo livello numerato
+come livello 0, l'ultimo livello sarà il livello LEVELS - 1. Per quanto detto il numero totale di nodi dell'albero 
+tramite il quale vengono gestiti i blocchi della bitmap è 2^(LEVELS) - 1 e il numero di foglie è 2^(LEVELS-1).

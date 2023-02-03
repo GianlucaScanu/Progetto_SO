@@ -3,20 +3,20 @@
 
 // simple bit array
 typedef struct  {
-  uint8_t *buffer;  // externally allocated buffer
+  uint8_t *buffer; 
   int buffer_size;
   int num_bits; 
-} BitMap;
+} bitmap;
 
 // returns the number of bytes to store bits booleans
-int BitMap_getBytes(int bits);
+int bitmap_getBytes(int bits);
 
 // initializes a bitmap on an external array
-void BitMap_init(BitMap* bit_map, int num_bits, uint8_t* buffer);
+void bitmap_init(bitmap* bit_map, int num_bits, uint8_t* buffer);
 
 // sets a the bit bit_num in the bitmap
 // status= 0 or 1
-void BitMap_setBit(BitMap* bit_map, int bit_num, int status);
+void bitmap_setBit(bitmap* bit_map, int bit_num, int status);
 
 // inspects the status of the bit bit_num
-int BitMap_bit(const BitMap* bit_map, int bit_num);
+int bitmap_bit(const bitmap* bit_map, int bit_num);
