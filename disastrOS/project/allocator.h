@@ -8,7 +8,6 @@ typedef struct{
     int memory_size;
     int levels;
     int chunk_size;
-    //TODO: aggiungi se necessario
 }buddy_allocator;
 
 

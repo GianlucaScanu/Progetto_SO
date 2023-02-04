@@ -6,8 +6,6 @@
 #include "tree.h"
 
 
-#include "string.h"
-
 
 
 
@@ -72,13 +70,12 @@ int search_ancestors(buddy_allocator* alloc, int bit){
     return 0;
 }
 
-
+//returns null if there is not enough space
 void * buddy_malloc(buddy_allocator* alloc, int size){
 
-    void * block;
+    void * block = NULL;
 
-    //Checks that size greater than 0;
-    //TODO: appartiene ai controlli
+    if (size > alloc->memory_size) return block;
 
     //We want to know which level we want to ask a buddy (block)
     int level = required_level(alloc,size);
@@ -103,11 +100,9 @@ void * buddy_malloc(buddy_allocator* alloc, int size){
         //Gets the chunk size of the required level
         int level_chunk_size = alloc->chunk_size << (alloc->levels - level - 1);
 
-        //Sets as taken the buddy requested, his ancestors and his descendants
+        //Sets as taken the buddy requested and  his ancestors 
         bitmap_set_bit(alloc->bit_map, free_node, 1);
         int debug_anc =  set_ancestors(alloc, free_node);
-        //TODO: COMMENTATA PERCHÈ SETTIAMO ORA AD 1 SOLO GLI ANTENATI
-        //int debug_des = set_descendants(alloc, free_node);
         
 
         //Gets the address in memory corresponding to the free block
@@ -119,24 +114,34 @@ void * buddy_malloc(buddy_allocator* alloc, int size){
 
 
 
-//TODO: SCEGLIERE COSA FARE SE INPUT SBAGLIATI
 //initialize a buddy allocator using "levels" levels for buddies
 int buddy_init(char* buffer, int buffer_size, int levels, buddy_allocator* alloc, int min_chunk_size,
                 char* memory, int memory_size){
 
     int err = 0;
-                    
+
+    //TODO: ANCORA C'È ASSERT  
     //checks is buffer size is enough to store the bitmap
     assert(buffer_size > bitmap_structure_size(levels));
 
     //checks if given levels number in input is over the limit
-    if (levels > MAX_LEVELS) levels = MAX_LEVELS;
+    if (levels > MAX_LEVELS){
+        levels = MAX_LEVELS;
+        err = -1;
+    } 
 
     //checks if the memory size is enough for the given minimum chunk's size given
     //(1 << (levels - 1)) is the number of leaves of size min_chunk_size
     //TODO: LA MEMORIA IN CHUNKS DOVREBBE CORRISPONDERE A QUELLA TOTALE DELLA MEMORY SIZE, altrimenti dati in ingresso incoerenti
-    printf("memoria in chunks: %d\n", min_chunk_size * (1 << (levels - 1)));
     assert(memory_size >= min_chunk_size * (1 << (levels - 1)));
+    if (memory_size != min_chunk_size * (1 << (levels - 1))){
+        if (err == -1){
+            err = -3;
+        }else{
+            //Memory input not correct
+            err = -2;
+        }
+    }
 
     //initializing buddy_allocator fields
     alloc->actual_memory = memory;
@@ -148,8 +153,6 @@ int buddy_init(char* buffer, int buffer_size, int levels, buddy_allocator* alloc
     bitmap_init(bit_map, total_nodes(levels) - 1, ((uint8_t*)buffer) + bitmap_structure_size(levels));
     alloc->bit_map = bit_map;
 
-
-    //TODO: se sono presenti errori restituire -1,-2, etc
     return err;
 }
 
@@ -165,7 +168,6 @@ void recursive_merge(buddy_allocator* alloc, int block){
 void buddy_free(buddy_allocator* alloc, void* mem){
     //distance in bytes between memory start and mem
     int distance = (char*)mem - alloc->actual_memory;
-    printf("len è : %d\n", distance);
 
     //Gets the node offset of "mem" from "start" expressed like the number of lowest level's chunks separing the two
     int node_offset = distance / alloc->chunk_size;
@@ -176,9 +178,6 @@ void buddy_free(buddy_allocator* alloc, void* mem){
     //Gets the last level node's index that represents the start of mem
     int mem_node = first_node + node_offset;
 
-    printf("mem_node: %d\n", mem_node);
-
-    //TODO: NON CANCELLA -> RIVEDI ALLA FINE
     recursive_merge(alloc, mem_node);
 
 }
