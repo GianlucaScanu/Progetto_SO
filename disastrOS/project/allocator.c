@@ -123,6 +123,8 @@ void * buddy_malloc(buddy_allocator* alloc, int size){
 //initialize a buddy allocator using "levels" levels for buddies
 int buddy_init(char* buffer, int buffer_size, int levels, buddy_allocator* alloc, int min_chunk_size,
                 char* memory, int memory_size){
+
+    int err = 0;
                     
     //checks is buffer size is enough to store the bitmap
     assert(buffer_size > bitmap_structure_size(levels));
@@ -148,16 +150,15 @@ int buddy_init(char* buffer, int buffer_size, int levels, buddy_allocator* alloc
 
 
     //TODO: se sono presenti errori restituire -1,-2, etc
-    return 0;
+    return err;
 }
 
 
 //Sets as free (bit to 0) the block and proceeds to recursively free the parent if buddy is free (bit already set to 0)
-int recursive_merge(buddy_allocator* alloc, int block){
+void recursive_merge(buddy_allocator* alloc, int block){
     bitmap_set_bit(alloc->bit_map, block, 0);
     int block_buddy = buddy(block);
-    if (block == 0 || bitmap_bit(alloc->bit_map, block_buddy)) return 0;
-    recursive_merge(alloc, parent(block));
+    if (block == 0 || !bitmap_bit(alloc->bit_map, block_buddy)) recursive_merge(alloc, parent(block));
 }
 
 
@@ -182,29 +183,3 @@ void buddy_free(buddy_allocator* alloc, void* mem){
 
 }
 
-int main(){
-    char buffer[1000000];
-    char memory[16*16];
-    //buddy struct allocated externally: we insert only the bitmap structures in the buffer
-    buddy_allocator alloc;
-    int err = buddy_init(buffer, 1000000, 3, &alloc, 64, memory, 16*16);
-    //Using int to pass the size we must respect the maximum value
-    char* block = (char*)buddy_malloc(&alloc, 128);
-    char* block1 = (char*)buddy_malloc(&alloc, 64);
-    
-    for (int i = 0; i <= (&alloc)->bit_map->num_bits; i++){
-        printf(" %d    ",  bitmap_bit((&alloc)->bit_map, i));
-    }
-    printf("\n");
-    /*
-    strcpy(block, "some string");
-    printf("%s\n", &block[0]);
-    buddy_free(&alloc,(void*)block1);
-
-
-    for (int i = 0; i <= (&alloc)->bit_map->num_bits; i++){
-        printf(" %d", bitmap_bit((&alloc)->bit_map, i));
-    }
-    printf("\n");*/
-    return 0;
-}
