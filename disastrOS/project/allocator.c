@@ -9,6 +9,7 @@
 
 
 
+//returns the size of the structure used to store the bitmap
 int bitmap_structure_size(int levels){
     //Stores in bits_numbers the total number of tree nodes since we need a bit for every node
     int bits_number = total_nodes(levels);
@@ -95,7 +96,7 @@ void * buddy_malloc(buddy_allocator* alloc, int size){
         }
     }
     if (free_node == -1){
-        //Return of not initialized variable block since there is NOT ENOUGH FREE MEMORY
+        //Returns NULL since there is NOT ENOUGH FREE MEMORY
     }else{
         //Gets the chunk size of the required level
         int level_chunk_size = alloc->chunk_size << (alloc->levels - level - 1);
@@ -161,11 +162,17 @@ int buddy_init(char* buffer, int buffer_size, int levels, buddy_allocator* alloc
 void recursive_merge(buddy_allocator* alloc, int block){
     bitmap_set_bit(alloc->bit_map, block, 0);
     int block_buddy = buddy(block);
-    if (block == 0 || !bitmap_bit(alloc->bit_map, block_buddy)) recursive_merge(alloc, parent(block));
+    //TODO: RICONTROLLA FUNZIONAMENTO
+    //i.e block is the root
+    if (block == 0) return;
+    if (!bitmap_bit(alloc->bit_map, block_buddy)) recursive_merge(alloc, parent(block));
 }
 
 
 void buddy_free(buddy_allocator* alloc, void* mem){
+
+    if (mem == NULL) return;
+
     //distance in bytes between memory start and mem
     int distance = (char*)mem - alloc->actual_memory;
 

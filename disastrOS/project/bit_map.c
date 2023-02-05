@@ -14,6 +14,13 @@ void bitmap_init(bitmap* bit_map, int num_bits, uint8_t* buffer){
   bit_map->buffer=buffer;
   bit_map->num_bits=num_bits;
   bit_map->buffer_size=bitmap_get_bytes(num_bits);
+
+  //Initializing all bits
+
+  for (int i = 0; i <= num_bits; i++){
+    bitmap_set_bit(bit_map, i, 0);
+  }
+
 }
 
 // sets a the bit bit_num in the bitmap
