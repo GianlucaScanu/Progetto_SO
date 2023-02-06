@@ -1,2 +1,13 @@
-make: main.c allocator.c bit_map.c tree.c
-	gcc -o main main.c allocator.c bit_map.c tree.c -I. -g -lm
+CC=gcc
+
+CFLAGS=-I. -lm
+
+DEPS = allocator.h bit_map.h tree.h
+
+OBJ = main.o allocator.o bit_map.o tree.o
+
+%.o: %.c $(DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+make: $(OBJ)
+	$(CC) -o $@ $^ $(CFLAGS)

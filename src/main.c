@@ -1,4 +1,3 @@
-
 #include "bit_map.h"
 #include "stdio.h"
 #include "allocator.h"
