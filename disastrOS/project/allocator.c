@@ -9,87 +9,102 @@
 
 
 
-//returns the size of the structure used to store the bitmap
+/* returns the size of the structure used to store the bitmap */
 int bitmap_structure_size(int levels){
-    //Stores in bits_numbers the total number of tree nodes since we need a bit for every node
+
+    //stores in bits_numbers the total number of tree nodes since we need a bit for every node
     int bits_number = total_nodes(levels);
-    //Adding the size of the buffer of 2^(levels - 1) bits (first field of the bitmap struct)
+
+    //adding the size of the buffer of 2^(levels - 1) bits (first field of the bitmap struct)
     int size = bitmap_get_bytes(bits_number) * sizeof(uint8_t);
-    //Adding the size of the struct remaining fields'
+
+    //adding the size of the struct remaining fields
     size += 2 * sizeof(int);
 }
 
 
-//returns the level, from 0 to levels - 1,  whose blocks can contain "size"
+/* returns the level, from 0 to levels - 1,  whose blocks can contain "size" */
 int required_level(buddy_allocator* alloc, int size){
+
     int threshold = alloc->chunk_size;
+
     for (int i = alloc->levels; i >= 1 ; i--){
+
         if (size <= threshold){
             return i-1;
         } 
+
         threshold = threshold << 1;
     }
-    //We try to give the maximum space possible
+
+    //we try to give the maximum space possible
     return 0;
 }
 
 
-//Sets as taken (1) all the buddies (blocks) that are the ancestors of the free block requested, represented by a bitmap's bit
+/* sets to taken (1) all the buddies (blocks) that are
+ the ancestors of the free block requested, represented by a bitmap's bit */
 int set_ancestors(buddy_allocator* alloc, int bit){
+
     while (bit > 0){
         bit = parent(bit);
         bitmap_set_bit(alloc->bit_map, bit, 1);
     }
+
     return 0;
 }
 
 
-//Sets as taken (1) all the buddies (blocks) that are the descendants of the free block requested, represented by a bitmap's bit
-int set_descendants(buddy_allocator* alloc, int bit){
-    bitmap_set_bit(alloc->bit_map, bit, 1);
-    if (left(bit) <= alloc->bit_map->num_bits){
-        set_descendants(alloc, left(bit));
-    }
-    if (right(bit) <= alloc->bit_map->num_bits){
-        set_descendants(alloc, right(bit));
-    }
-    return 0;
-}
-
-//Returns 0 if the block's ancestors are not used, 1 otherwise
+/* returns 0 if the block's ancestors are not used, 1 otherwise */
 int search_ancestors(buddy_allocator* alloc, int bit, int * parent_node){
+
     while (bit > 0){
+
         if (bitmap_bit(alloc->bit_map, parent(bit))){
+
             //bit's parent is 1 and bit's buddy is 1
             if (bitmap_bit(alloc->bit_map, buddy(bit))) return 0;
+
             //bit's parent is 1 and bit's buddy is 0
             else{
               *parent_node = parent(bit);
               return 1;  
             } 
+
         }else{
             bit = parent(bit);
         }
     }
+
     return 0;
 }
 
-//returns null if there is not enough space
+/* returns a pointer to the start of the first available smallest block that 
+   can contain "size". If there is no room to contain "size" it returns NULL */
 void * buddy_malloc(buddy_allocator* alloc, int size){
 
-    void * block = NULL;
+    void* block;
+
+    int level;
+
+    int first_node;
+
+    int free_node;
+
+    int parent_node;
+
+    block = NULL;
 
     if (size > alloc->memory_size) return block;
 
-    //We want to know which level we want to ask a buddy (block)
-    int level = required_level(alloc,size);
+    //we want to know which level we want to ask a buddy (block)
+    level = required_level(alloc,size);
 
-    //Gets the index of the first node of level
-    int first_node = first_of_level(level);
+    //gets the index of the first node of level
+    first_node = first_of_level(level);
 
-    //Finds and stores in free_node the first free buddy (block) able to contain size
-    int free_node = -1;
-    int parent_node;
+    //finds and stores in free_node the first free buddy (block) able to contain size
+    free_node = -1;
     for (int i = 0; i < nodes_in_level(level); i++){
         if (!bitmap_bit(alloc->bit_map, i + first_node)){
             //il bit considerato è 0     
@@ -109,7 +124,7 @@ void * buddy_malloc(buddy_allocator* alloc, int size){
 
         //Sets as taken the buddy requested and  his ancestors 
         bitmap_set_bit(alloc->bit_map, free_node, 1);
-        int debug_anc =  set_ancestors(alloc, free_node);
+        set_ancestors(alloc, free_node);
         
 
         //Gets the address in memory corresponding to the free block
@@ -140,8 +155,8 @@ int buddy_init(char* buffer, int buffer_size, int levels, buddy_allocator* alloc
 
     //checks if the memory size is enough for the given minimum chunk's size given
     //(1 << (levels - 1)) is the number of leaves of size min_chunk_size
-    //TODO: LA MEMORIA IN CHUNKS DOVREBBE CORRISPONDERE A QUELLA TOTALE DELLA MEMORY SIZE, altrimenti dati in ingresso incoerenti
-    assert(memory_size >= min_chunk_size * (1 << (levels - 1)));
+    if (memory_size < min_chunk_size * (1 << (levels - 1))) return 1;
+
     if (memory_size != min_chunk_size * (1 << (levels - 1))){
         if (err == -1){
             err = -3;
@@ -169,7 +184,6 @@ int buddy_init(char* buffer, int buffer_size, int levels, buddy_allocator* alloc
 void recursive_merge(buddy_allocator* alloc, int block){
     bitmap_set_bit(alloc->bit_map, block, 0);
     int block_buddy = buddy(block);
-    //TODO: RICONTROLLA FUNZIONAMENTO
     //i.e block is the root
     if (block == 0) return;
     if (!bitmap_bit(alloc->bit_map, block_buddy)) recursive_merge(alloc, parent(block));
@@ -184,6 +198,7 @@ void buddy_free(buddy_allocator* alloc, void* mem){
     int distance = (char*)mem - alloc->actual_memory;
 
     //mem is not a valid address
+    if (distance % alloc->chunk_size != 0) return;
 
     //Gets the node offset of "mem" from "start" expressed like the number of lowest level's chunks separing the two
     int node_offset = distance / alloc->chunk_size;

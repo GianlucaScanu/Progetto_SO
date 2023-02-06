@@ -8,15 +8,14 @@ typedef struct  {
   int num_bits; 
 } bitmap;
 
-// returns the number of bytes to store bits booleans
+/* returns the number of bytes needed to store bits booleans */
 int bitmap_get_bytes(int bits);
 
-// initializes a bitmap on an external array
+/* initializes a bitmap on an external array */
 void bitmap_init(bitmap* bit_map, int num_bits, uint8_t* buffer);
 
-// sets a the bit bit_num in the bitmap
-// status= 0 or 1
+/* sets to "status" the bit bit_num */
 void bitmap_set_bit(bitmap* bit_map, int bit_num, int status);
 
-// inspects the status of the bit bit_num
+/* inspects the "bit_num" bit in the bitmap and returns its value */
 int bitmap_bit(const bitmap* bit_map, int bit_num);
