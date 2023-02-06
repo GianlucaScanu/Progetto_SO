@@ -3,6 +3,8 @@
 
 int total_nodes(int levels);
 
+int get_level(int i);
+
 int first_of_level(int level);
 
 int nodes_in_level(int level);

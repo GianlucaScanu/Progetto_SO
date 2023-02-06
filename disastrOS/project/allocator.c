@@ -57,13 +57,16 @@ int set_descendants(buddy_allocator* alloc, int bit){
 }
 
 //Returns 0 if the block's ancestors are not used, 1 otherwise
-int search_ancestors(buddy_allocator* alloc, int bit){
+int search_ancestors(buddy_allocator* alloc, int bit, int * parent_node){
     while (bit > 0){
         if (bitmap_bit(alloc->bit_map, parent(bit))){
             //bit's parent is 1 and bit's buddy is 1
             if (bitmap_bit(alloc->bit_map, buddy(bit))) return 0;
             //bit's parent is 1 and bit's buddy is 0
-            else return 1;
+            else{
+              *parent_node = parent(bit);
+              return 1;  
+            } 
         }else{
             bit = parent(bit);
         }
@@ -86,13 +89,16 @@ void * buddy_malloc(buddy_allocator* alloc, int size){
 
     //Finds and stores in free_node the first free buddy (block) able to contain size
     int free_node = -1;
+    int parent_node;
     for (int i = 0; i < nodes_in_level(level); i++){
         if (!bitmap_bit(alloc->bit_map, i + first_node)){
-            //il bit considerato è 0
-            if(!search_ancestors(alloc, i + first_node)){
+            //il bit considerato è 0     
+            if(!search_ancestors(alloc, i + first_node, &parent_node)){
                 free_node = i + first_node;
                 break;
             }
+            //if the loop does not break it is not free, so i jumps to the next possible free block 
+            i = i  + (1 << (get_level(parent_node) - level));
         }
     }
     if (free_node == -1){
@@ -121,9 +127,10 @@ int buddy_init(char* buffer, int buffer_size, int levels, buddy_allocator* alloc
 
     int err = 0;
 
-    //TODO: ANCORA C'È ASSERT  
-    //checks is buffer size is enough to store the bitmap
-    assert(buffer_size > bitmap_structure_size(levels));
+    //checks is buffer size is enough to store the bitmap and minimum chunk size is greater than memory size
+    if(buffer_size <= bitmap_structure_size(levels) || min_chunk_size > memory_size){
+        return 1;
+    }
 
     //checks if given levels number in input is over the limit
     if (levels > MAX_LEVELS){
@@ -175,6 +182,8 @@ void buddy_free(buddy_allocator* alloc, void* mem){
 
     //distance in bytes between memory start and mem
     int distance = (char*)mem - alloc->actual_memory;
+
+    //mem is not a valid address
 
     //Gets the node offset of "mem" from "start" expressed like the number of lowest level's chunks separing the two
     int node_offset = distance / alloc->chunk_size;
