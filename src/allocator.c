@@ -166,7 +166,7 @@ int buddy_init(char* buffer, int buffer_size, int levels, buddy_allocator* alloc
 
     int err = 0;
 
-    //checks is buffer size is enough to store the bitmap and minimum chunk size is greater than memory size
+    //checks if buffer size is enough to store the bitmap and minimum chunk size is greater than memory size
     if(buffer_size <= bitmap_structure_size(levels) || min_chunk_size > memory_size){
         return 1;
     }
