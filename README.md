@@ -1,2 +1,3 @@
 # Progetto_SO
-Il codice del progetto risiede unicamente nella cartella source.
+Implementation of a buddy allocator for the DisastrOs Operative System used as a Bachelor Thesis project.
+The allocator code entirely resides in the source folder.
